@@ -1,0 +1,14 @@
+[project]
+name = "nutils-experimental-plastic"
+version = "1.0"
+readme = "README.md"
+authors = [
+    { name = "Evalf", email = "info@evalf.com" },
+]
+requires-python = '>=3.10'
+description = "Nutils Units: object wrappers for dimensional computations"
+license = "MIT AND (Apache-2.0 OR BSD-2-Clause)"
+classifiers = [
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+]
