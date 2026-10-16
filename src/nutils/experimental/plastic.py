@@ -108,13 +108,22 @@ class _MCC_InvJac(evaluable.Array):
         return out
 
 
-def mcc(σ0, pc0, M, h, K, G, tol):
-    p0 = np.trace(σ0) / 3
+def hooke(εe, K, G, Δp):
     I = function.eye(3)
-    s0 = σ0 - p0 * I
-    q0 = np.sqrt(1.5 * np.sum(s0**2))
+    εev = np.trace(εe)
+    εed = εe - (εev / 3) * I
+    p = K * εev + Δp
+    s = (2 * G) * εed
+    q = np.sqrt(1.5 * np.sum(s**2))
+    σ = p * I + s
+    return σ, p, q, s
+
+
+def mcc(ε, K, G, Δp, εp, M, h, pcinit, tol):
+    σ0, p0, q0, s0 = hooke(ε - εp, K, G, Δp)
+    pc0 = pcinit * np.exp(h * np.trace(εp))
     g = 6 * G * K**-1 * M**-2
-    p_K, pc_K, q_K, λK = function._Wrapper(
+    p_K, pc_K, q_MK, λK = function._Wrapper(
         partial(_MCC_ReturnMap, tol=tol),
         function.asarray(p0 / K),
         function.asarray(pc0 / K),
@@ -124,7 +133,11 @@ def mcc(σ0, pc0, M, h, K, G, tol):
         shape=(4,),
         dtype=float,
     )
+    I = function.eye(3)
+    p = p_K * K
+    pc = pc_K * K
+    q = q_MK * (M * K)
     s = s0 / (1 + g * λK)
-    σ = (p_K * K) * I + s
+    σ = p * I + s
     Δεp = λK * ((1 / 3) * (2 * p_K - pc_K) * I + 3 * K**-1 * M**-2 * s)
-    return σ, Δεp
+    return σ, p, q, s, pc, εp + Δεp
